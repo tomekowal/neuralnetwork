@@ -19,10 +19,13 @@ object NeuralNetwork {
         }
         def calculate0(input: List[Double], weights: Weights): List[Double] = {
             weights match {
-                case inputLayer :: Nil => for (neuronWeights <- inputLayer) yield scalarProduct(neuronWeights, input)
+                case inputLayer :: Nil =>
+                    for (neuronWeights <- inputLayer) yield
+                        neuron.calculate(scalarProduct(neuronWeights, input))
                 case currentLayer :: t => {
                     val precomputed = calculate0(input, t)
-                    for (neuronWeights <- currentLayer) yield scalarProduct(neuronWeights, precomputed)
+                    for (neuronWeights <- currentLayer) yield
+                        neuron.calculate(scalarProduct(neuronWeights, precomputed))
                 }
                 case Nil => throw new IllegalArgumentException("Weight list cannot be empty")
             }
