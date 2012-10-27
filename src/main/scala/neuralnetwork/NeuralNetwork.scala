@@ -22,8 +22,8 @@ object NeuralNetwork {
                 case inputLayer :: Nil =>
                     for (neuronWeights <- inputLayer) yield
                         neuron.calculate(scalarProduct(neuronWeights, input))
-                case currentLayer :: t => {
-                    val precomputed = calculate0(input, t)
+                case currentLayer :: lowerLayers => {
+                    val precomputed = calculate0(input, lowerLayers)
                     for (neuronWeights <- currentLayer) yield
                         neuron.calculate(scalarProduct(neuronWeights, precomputed))
                 }
