@@ -1,4 +1,5 @@
 import neuralnetwork.NeuralNetwork._
+import neuralnetwork.StringParserNeuralNetwork
 import org.scalatest.FunSuite
 
 import org.junit.runner.RunWith
@@ -66,6 +67,18 @@ class NeuralSuite extends FunSuite {
     test("multiple layers") {
         new TestNetworks {
             assert(nn21.calculate(input) === List(0.25))
+        }
+    }
+
+    test("string parser") {
+        new TestNetworks {
+            object TestParser extends StringParserNeuralNetwork {
+                val weightsString =
+                    """0.0 0.1 0.2 | 0.1 0.2 0.3
+                      |0.1 0.2 0.3 | 0.1 0.2 0.3""".stripMargin
+
+                assert(weights(weightsString) === List(layerWithTwoNeurons, layerWithTwoNeurons))
+            }
         }
     }
 }
