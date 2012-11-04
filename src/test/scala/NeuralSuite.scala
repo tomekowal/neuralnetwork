@@ -8,7 +8,12 @@ import org.scalatest.junit.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
 class NeuralSuite extends FunSuite {
-    trait TestNetworks {
+    trait TestNetworks extends StringParserNeuralNetwork {
+        def error(result: List[Double], exact: List[Double]): Double =
+            (for ( (x, y) <- result zip exact) yield (x - y)*(x - y)).sum
+
+        val epsilon = 0.0000001
+
         //activation function
         val linearActivationFunction = (x: Double) => x
         //neuron weights
@@ -30,7 +35,6 @@ class NeuralSuite extends FunSuite {
         val nn0 = new NeuralNetwork(oneLayerOfZeroes, linearActivationFunction)
         val nn1 = new NeuralNetwork(oneLayerWeights, linearActivationFunction)
         val nn12 = new NeuralNetwork(oneLayerTwoNeuronsWeights, linearActivationFunction)
-        val nn21 = new NeuralNetwork(twoLayersWithSingleNeuron, linearActivationFunction)
 
         //test inputs
         val input = List(0.0, 1.0, 2.0)
@@ -51,35 +55,9 @@ class NeuralSuite extends FunSuite {
         }
     }
 
-    test("return 0 when weights are 0") {
-        new TestNetworks {
-            assert(nn0.calculate(input) === List(0))
-        }
-    }
-
-    test("test non zero weigts") {
-        new TestNetworks {
-            assert(nn1.calculate(input) === List(0.5))
-        }
-    }
-
-    test("two neurons one layer") {
-        new TestNetworks {
-            assert(nn12.calculate(input) === List(0.5, 0.5))
-        }
-    }
-
-    test("multiple layers") {
-        new TestNetworks {
-            assert(nn21.calculate(input) === List(0.25))
-        }
-    }
-
     test("string parser") {
         new TestNetworks {
             object TestParser extends StringParserNeuralNetwork {
-
-
                 assert(weights(weightsString) === List(layerWithTwoNeurons, layerWithTwoNeurons))
             }
         }
@@ -90,6 +68,56 @@ class NeuralSuite extends FunSuite {
             val parser = new FileParserNeuralNetwork("src/test/resources/weights.txt")
             assert(parser.weightsFromFile === List(layerWithTwoNeurons, layerWithTwoNeurons))
         }
+    }
 
+    test("return zero when weights are zero") {
+        new TestNetworks {
+            override val weightsString =
+                """0.0 0.0 0.0 | 0.0 0.0 0.0
+                  |0.0 0.0 0.0 | 0.0 0.0 0.0""".stripMargin
+            val w = weights(weightsString)
+            val fa = (x: Double) => x
+            val nn = new NeuralNetwork(w, fa)
+            assert(nn.calculate(List(1.0, 1.0)) === List(0.0, 0.0))
+        }
+    }
+
+    test("test one layer network") {
+        new TestNetworks {
+            override val weightsString = "0.5 0.4 0.3 | 0.2 0.1 0.0"
+            val w = weights(weightsString)
+            val fa = (x: Double) => x
+            val nn = new NeuralNetwork(w, fa)
+            val result = nn.calculate(List(1.0, 1.0))
+            val exact = List(1.2, 0.3)
+            assert(error(result, exact) < epsilon)
+        }
+    }
+
+    test("test non zero values") {
+        new TestNetworks {
+            override val weightsString =
+                """0.3 0.2 0.1 | 0.3 0.2 0.1
+                  |0.1 0.2 0.3 | 0.1 0.2 0.3""".stripMargin
+            val w = weights(weightsString)
+            val fa = (x: Double) => x
+            val nn = new NeuralNetwork(w, fa)
+            val result = nn.calculate(List(1.0, 1.0))
+            val exact = List(0.48, 0.48)
+            assert(error(result, exact) < epsilon)
+        }
+    }
+
+    test("test check weights") {
+        new TestNetworks {
+            override val weightsString =
+                """0.3 0.2 0.1 | 0.3 0.2 0.1
+                  |0.1 0.2 0.3""".stripMargin
+            val w = weights(weightsString)
+            val fa = (x: Double) => x
+            intercept[java.lang.AssertionError] {
+                val nn = new NeuralNetwork(w, fa)
+            }
+        }
     }
 }
