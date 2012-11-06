@@ -41,7 +41,6 @@ object NeuralNetwork {
                     val isAllRight = (
                         for (neuronWeights <- layer) yield neuronWeights.length == (lowerLayerNeuronsCount + 1)
                     ).forall((bool) => bool)
-                    println(isAllRight)
                     isAllRight && checkWeights(lowerLayers)
                 }
             }
