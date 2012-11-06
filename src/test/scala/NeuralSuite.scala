@@ -83,7 +83,7 @@ class NeuralSuite extends FunSuite {
 
     test("test one layer network") {
         new TestNetworks {
-            override val weightsString = "0.5 0.4 0.3 | 0.2 0.1 0.0"
+            override val weightsString = "-0.5 0.4 0.3 | -0.2 0.1 0.0"
             val w = weights(weightsString)
             val fa = (x: Double) => x
             val nn = new NeuralNetwork(w, fa)
@@ -96,8 +96,8 @@ class NeuralSuite extends FunSuite {
     test("test non zero values") {
         new TestNetworks {
             override val weightsString =
-                """0.3 0.2 0.1 | 0.3 0.2 0.1
-                  |0.1 0.2 0.3 | 0.1 0.2 0.3""".stripMargin
+                """-0.3 0.2 0.1 | -0.3 0.2 0.1
+                  |-0.1 0.2 0.3 | -0.1 0.2 0.3""".stripMargin
             val w = weights(weightsString)
             val fa = (x: Double) => x
             val nn = new NeuralNetwork(w, fa)
