@@ -27,7 +27,7 @@ object Application extends App {
         println("="*20)
         for (i <- inputs) yield {
             println("input: " + printList(i))
-            println("calculated result: " + printList(andProgowaNN.calculate(i)))
+            println("calculated result: " + printList(nn.calculate(i)))
             println("random result: " + printList(randomNN.calculate(i)))
             println
         }
