@@ -1,6 +1,5 @@
 import neuralnetwork.NeuralNetwork._
-import neuralnetwork.StringParserNeuralNetwork
-import neuralnetwork.FileParserNeuralNetwork
+import neuralnetwork._
 import org.scalatest.FunSuite
 
 import org.junit.runner.RunWith
@@ -118,6 +117,13 @@ class NeuralSuite extends FunSuite {
             intercept[java.lang.AssertionError] {
                 val nn = new NeuralNetwork(w, fa)
             }
+        }
+    }
+
+    test("parse input") {
+        new TestNetworks {
+            val inputParser = new InputParser("src/test/resources/inputs.txt")
+            assert(inputParser.inputsFromFile === List(List(1.0, 0.0), List(0.5, 0.5)))
         }
     }
 }
