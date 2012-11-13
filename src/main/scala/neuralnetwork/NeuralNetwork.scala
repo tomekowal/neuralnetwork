@@ -4,15 +4,19 @@ object NeuralNetwork {
     //List of weights under given neuron
     type NeuronWeight = Double
     type NeuronWeights = List[NeuronWeight]
-    type Layer = List[NeuronWeights]
+    type WeightMatrix = List[NeuronWeights]
     type Weights = List[Layer]
+
+    abstract class Layer (val layer: List[NeuronWeights])
+    case class BiasLayer (override val layer: List[NeuronWeights]) extends Layer (layer)
+    case class NoBiasLayer (override val layer: List[NeuronWeights]) extends Layer(layer)
 
     trait WeightsPrinter {
         def weightsToString (weights: Weights): String =
             (for (layer <- weights) yield
-                layerToString(layer) + "\n").mkString
+                layerToString(layer.layer) + "\n").mkString
 
-        def layerToString(layer: Layer): String =
+        def layerToString(layer: WeightMatrix): String =
             (for (neuronWeights <- layer) yield
                 neuronWeightsToString(neuronWeights) + "| ").mkString
 
@@ -37,9 +41,9 @@ object NeuralNetwork {
                     true
                 }
                 case layer :: lowerLayers => {
-                    val lowerLayerNeuronsCount = lowerLayers.head.length
+                    val lowerLayerNeuronsCount = lowerLayers.head.layer.length
                     val isAllRight = (
-                        for (neuronWeights <- layer) yield neuronWeights.length == (lowerLayerNeuronsCount + 1)
+                        for (neuronWeights <- layer.layer) yield neuronWeights.length == (lowerLayerNeuronsCount + 1)
                     ).forall((bool) => bool)
                     isAllRight && checkWeights(lowerLayers)
                 }
@@ -54,11 +58,11 @@ object NeuralNetwork {
         def calculate0(input: List[Double], weights: Weights): List[Double] = {
             weights match {
                 case inputLayer :: Nil =>
-                    for (neuronWeights <- inputLayer) yield
+                    for (neuronWeights <- inputLayer.layer) yield
                         neuron.calculate(scalarProduct(neuronWeights, bias :: input))
                 case currentLayer :: lowerLayers => {
                     val precomputed = calculate0(input, lowerLayers)
-                    for (neuronWeights <- currentLayer) yield
+                    for (neuronWeights <- currentLayer.layer) yield
                         neuron.calculate(scalarProduct(neuronWeights, bias :: precomputed))
                 }
                 case Nil => throw new IllegalArgumentException("Weight list cannot be empty")

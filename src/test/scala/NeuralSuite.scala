@@ -20,9 +20,9 @@ class NeuralSuite extends FunSuite {
         val neuronWeights: NeuronWeights = List(0.0, 0.1, 0.2)
         val zeroNeuronWeights: NeuronWeights = List(0.0, 0.0, 0.0)
         //layer definitions
-        val layerOfZeroes = List(zeroNeuronWeights)
-        val layerWithOneNeuron = List(neuronWeights)
-        val layerWithTwoNeurons = List(neuronWeights, neuronWeights)
+        val layerOfZeroes = new BiasLayer(List(zeroNeuronWeights))
+        val layerWithOneNeuron = new BiasLayer(List(neuronWeights))
+        val layerWithTwoNeurons = new BiasLayer(List(neuronWeights, neuronWeights))
         val endLayer = List(neuronWithSingleInputWeight)
         //weights definition
         val oneLayerOfZeroes = List(layerOfZeroes)
@@ -66,6 +66,17 @@ class NeuralSuite extends FunSuite {
         new TestNetworks {
             val parser = new FileParserNeuralNetwork("src/test/resources/weights.txt")
             assert(parser.weightsFromFile === List(layerWithTwoNeurons, layerWithTwoNeurons))
+        }
+    }
+
+    test("no bias weights") {
+        new TestNetworks {
+            val parser = new FileParserNeuralNetwork("src/test/resources/noBiasWeights.txt")
+            val output = List(new NoBiasLayer(List(List(0.1, 0.2),
+                                                   List(0.1, 0.2))),
+                              new BiasLayer(List(List(0.0, 0.1, 0.2),
+                                                 List(0.0, 0.1, 0.2))))
+            assert(parser.weightsFromFile === output)
         }
     }
 
