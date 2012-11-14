@@ -51,7 +51,10 @@ object NeuralNetwork {
         assert(checkWeights(weights))
         val bias = -1.0
         val neuron = new Neuron(activationFunction)
-        def scalarProduct(l1: List[Double], l2: List[Double]) = (for {(x, y) <- l1 zip l2} yield x * y).sum
+        def scalarProduct(l1: List[Double], l2: List[Double]) = {
+            if (l1.length == l2.length) (for {(x, y) <- l1 zip l2} yield x * y).sum
+            else throw new Exception("");
+        }
         def calculate(input: List[Double]) = {
             calculate0(input, weights)
         }
