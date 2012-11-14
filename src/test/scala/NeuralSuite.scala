@@ -19,10 +19,15 @@ class NeuralSuite extends FunSuite {
         val neuronWithSingleInputWeight: NeuronWeights = List(0.5)
         val neuronWeights: NeuronWeights = List(0.0, 0.1, 0.2)
         val zeroNeuronWeights: NeuronWeights = List(0.0, 0.0, 0.0)
+       
+        
         //layer definitions
         val layerOfZeroes = new BiasLayer(List(zeroNeuronWeights))
         val layerWithOneNeuron = new BiasLayer(List(neuronWeights))
         val layerWithTwoNeurons = new BiasLayer(List(neuronWeights, neuronWeights))
+        val layerWithNoBiasI2O1 = new NoBiasLayer(List(List(1.0, 0.5)))
+        val layerWithIncorrectBiasI2O1 = new NoBiasLayer(List(List(666.0, 1.0, 0.5)))
+
         val endLayer = List(neuronWithSingleInputWeight)
         //weights definition
         val oneLayerOfZeroes = List(layerOfZeroes)
@@ -34,6 +39,8 @@ class NeuralSuite extends FunSuite {
         val nn0 = new NeuralNetwork(oneLayerOfZeroes, linearActivationFunction)
         val nn1 = new NeuralNetwork(oneLayerWeights, linearActivationFunction)
         val nn12 = new NeuralNetwork(oneLayerTwoNeuronsWeights, linearActivationFunction)
+        val nnNoBiasI2O1 = new NeuralNetwork(List(layerWithNoBiasI2O1), linearActivationFunction)
+        val nnNoBiasIncorrectI2O1 = new NeuralNetwork(List(layerWithIncorrectBiasI2O1), linearActivationFunction)
 
         //test inputs
         val input = List(0.0, 1.0, 2.0)
@@ -137,4 +144,21 @@ class NeuralSuite extends FunSuite {
             assert(inputParser.inputsFromFile === List(List(1.0, 0.0), List(0.5, 0.5)))
         }
     }
+
+    test("test layer without bias") {
+        new TestNetworks {
+            val result = nnNoBiasI2O1.calculate(List(1.0, 1.0))
+            val exact = List(1.5)
+            assert(error(result, exact) < epsilon)
+        }
+    }
+
+    test("test layer without bias, but with bias weight provided") {
+        new TestNetworks {
+            intercept[Exception] {
+                nnNoBiasIncorrectI2O1.calculate(List(1.0, 1.0))
+            }
+        }
+    }
+
 }
