@@ -161,4 +161,27 @@ class NeuralSuite extends FunSuite {
         }
     }
 
+    test("random layer generator") {
+        new TestNetworks {
+            val generated = new RandomWeightsGenerator().randomLayer(3, 2)
+            assert(generated.length === 2)
+            assert(generated(0).length === 3)
+            assert(generated(1).length === 3)
+
+        }
+    }
+
+    test("random network generator") {
+        new TestNetworks {
+            val generated = new RandomWeightsGenerator().randomLayers(List(1,2,3))
+            assert(generated.length === 2)
+            assert(generated(0).layer.length === 1)
+            assert(generated(0).layer(0).length === 3)
+            assert(generated(1).layer.length === 2)
+            assert(generated(1).layer(0).length === 4)
+        }
+    }
+
+       
+
 }

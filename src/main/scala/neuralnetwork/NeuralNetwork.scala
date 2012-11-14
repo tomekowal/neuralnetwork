@@ -79,5 +79,20 @@ object NeuralNetwork {
 
         override def toString =
             weightsToString(weights)
+
+    }
+
+    class RandomWeightsGenerator {
+       val random = new scala.util.Random()
+       def randomLayer(inputSize : Integer, outputSize : Integer) : List[NeuronWeights] = {
+           (for (i <- 0 until outputSize) yield
+               (for (j <- 0 until inputSize) yield
+                   random.nextDouble()).toList).toList
+       }
+
+       def randomLayers(sizes : List[Integer]) : List[Layer] = {
+           (for ( i <- 0 until (sizes.length - 1)) yield
+              new BiasLayer( randomLayer(sizes(i+1) + 1, sizes(i)))).toList
+       }
     }
 }
