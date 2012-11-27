@@ -44,7 +44,7 @@ class NeuralSuite extends FunSuite {
         val input = List(0.0, 1.0, 2.0)
 
         val weightsString =
-            """0.0 0.1 0.2 | 0.0 0.1 0.2
+            """linear 0.0 0.1 0.2 | 0.0 0.1 0.2
               |0.0 0.1 0.2 | 0.0 0.1 0.2""".stripMargin
     }
 
@@ -72,9 +72,9 @@ class NeuralSuite extends FunSuite {
     test("no bias weights") {
         new TestNetworks {
             val parser = new FileParserNeuralNetwork("src/test/resources/noBiasWeights.txt")
-            val output = List(new LinearLayer(List(List(0.1, 0.2),
+            val output = List(new SigmoidLayer(List(List(0.1, 0.2),
                                                    List(0.1, 0.2)), false),
-                              new LinearLayer(List(List(0.0, 0.1, 0.2),
+                              new SigmoidLayer(List(List(0.0, 0.1, 0.2),
                                                  List(0.0, 0.1, 0.2))))
 	    
             assert(parser.weightsFromFile === output)
@@ -84,10 +84,9 @@ class NeuralSuite extends FunSuite {
     test("return zero when weights are zero") {
         new TestNetworks {
             override val weightsString =
-                """0.0 0.0 0.0 | 0.0 0.0 0.0
-                  |0.0 0.0 0.0 | 0.0 0.0 0.0""".stripMargin
+                """t 0.0 0.0 0.0 | 0.0 0.0 0.0 
+                   thresh 0.0 0.0 0.0 | 0.0 0.0 0.0""".stripMargin
             val w = weights(weightsString)
-            val fa = (x: Double) => x
             val nn = new NeuralNetwork(w)
             assert(nn.calculate(List(1.0, 1.0)) === List(0.0, 0.0))
         }
@@ -95,7 +94,7 @@ class NeuralSuite extends FunSuite {
 
     test("test one layer network") {
         new TestNetworks {
-            override val weightsString = "-0.5 0.4 0.3 | -0.2 0.1 0.0"
+            override val weightsString = "l -0.5 0.4 0.3 | -0.2 0.1 0.0"
             val w = weights(weightsString)
             val nn = new NeuralNetwork(w)
             val result = nn.calculate(List(1.0, 1.0))
@@ -107,8 +106,8 @@ class NeuralSuite extends FunSuite {
     test("test non zero values") {
         new TestNetworks {
             override val weightsString =
-                """-0.3 0.2 0.1 | -0.3 0.2 0.1
-                  |-0.1 0.2 0.3 | -0.1 0.2 0.3""".stripMargin
+                """l -0.3 0.2 0.1 | -0.3 0.2 0.1
+                  l -0.1 0.2 0.3 | -0.1 0.2 0.3""".stripMargin
             val w = weights(weightsString)
             val nn = new NeuralNetwork(w)
             val result = nn.calculate(List(1.0, 1.0))
@@ -120,8 +119,8 @@ class NeuralSuite extends FunSuite {
     test("test check weights") {
         new TestNetworks {
             override val weightsString =
-                """0.3 0.2 0.1 | 0.3 0.2 0.1
-                  |0.1 0.2 0.3""".stripMargin
+                """l 0.3 0.2 0.1 | 0.3 0.2 0.1
+                  l 0.1 0.2 0.3""".stripMargin
             val w = weights(weightsString)
             val fa = (x: Double) => x
             intercept[java.lang.AssertionError] {

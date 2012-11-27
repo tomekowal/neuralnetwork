@@ -1,5 +1,7 @@
 package neuralnetwork
 
+import scala.math._
+
 object NeuralNetwork {
     //List of weights under given neuron
     type NeuronWeight = Double
@@ -13,6 +15,13 @@ object NeuralNetwork {
     case class LinearLayer (layerz: List[NeuronWeights], biasz: Boolean = true) extends Layer (layerz, biasz) {
     	 override def calculate(x: Double): Double = x
     }
+    case class SigmoidLayer (layerz: List[NeuronWeights], biasz: Boolean = true) extends Layer (layerz, biasz) {
+    	 override def calculate(x: Double): Double = 1.0 / (1.0 + exp(-x))
+    }
+    case class ThresholdLayer (layerz: List[NeuronWeights], biasz: Boolean = true) extends Layer (layerz, biasz) {
+    	 override def calculate(x: Double): Double = if (x > 0) 1.0 else 0.0
+    }
+
 
     trait WeightsPrinter {
         def weightsToString (weights: Weights): String =
