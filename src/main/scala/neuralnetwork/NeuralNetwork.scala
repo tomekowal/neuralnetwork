@@ -10,17 +10,31 @@ object NeuralNetwork {
     type Weights = List[Layer]
 
     abstract class Layer (var layer: List[NeuronWeights], val bias: Boolean) {
-    	 def calculate(x: Double): Double
+         def activationFunction(x: Double): Double
+
+         def calculate(weights: NeuronWeights, inps: List[Double]) = {
+            var inputs : List[Double] = null
+	    if (bias) inputs = -1.0 :: inps else inputs = inps
+	       
+	    if (weights.length != inputs.length) 
+	       throw new Exception("weights and inputs not of equal length...")
+	    psp(weights, inputs)
+	 }
+
+         def psp(weights: NeuronWeights, inputs: List[Double]) = {
+            (for {(x, y) <- weights zip inputs} yield x * y).sum
+        }
     }
-    case class LinearLayer (layerz: List[NeuronWeights], biasz: Boolean = true) extends Layer (layerz, biasz) {
-    	 override def calculate(x: Double): Double = x
+    case class LinearLayer (layerx: List[NeuronWeights], biasx: Boolean = true) extends Layer (layerx, biasx) {
+         override def activationFunction(x: Double): Double = x
     }
-    case class SigmoidLayer (layerz: List[NeuronWeights], biasz: Boolean = true) extends Layer (layerz, biasz) {
-    	 override def calculate(x: Double): Double = 1.0 / (1.0 + exp(-x))
+    case class SigmoidLayer (layerx: List[NeuronWeights], biasx: Boolean = true) extends Layer (layerx, biasx) {
+         override def activationFunction(x: Double): Double = 1.0 / (1.0 + exp(-x))
     }
-    case class ThresholdLayer (layerz: List[NeuronWeights], biasz: Boolean = true) extends Layer (layerz, biasz) {
-    	 override def calculate(x: Double): Double = if (x > 0) 1.0 else 0.0
+    case class ThresholdLayer (layerx: List[NeuronWeights], biasx: Boolean = true) extends Layer (layerx, biasx) {
+         override def activationFunction(x: Double): Double = if (x > 0) 1.0 else 0.0
     }
+
 
 
     trait WeightsPrinter {
@@ -58,10 +72,7 @@ object NeuralNetwork {
             }
         assert(checkWeights(weights))
         val bias = -1.0
-        def scalarProduct(l1: List[Double], l2: List[Double]) = {
-            if (l1.length == l2.length) (for {(x, y) <- l1 zip l2} yield x * y).sum
-            else throw new Exception("");
-        }
+        
         def calculate(input: List[Double]) = {
             calculate0(input, weights)
         }
@@ -78,10 +89,7 @@ object NeuralNetwork {
         }
         def calculate1(input : List[Double], layerInput : Layer): List[Double] = {
             for (neuronWeights <- layerInput.layer) yield
-                if (layerInput.bias) 
-                   layerInput.calculate(scalarProduct(neuronWeights, bias :: input))
-                else
-		   layerInput.calculate(scalarProduct(neuronWeights, input))
+       	        layerInput.calculate(neuronWeights,input)
         }
 
         override def toString =

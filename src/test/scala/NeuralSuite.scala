@@ -48,9 +48,9 @@ class NeuralSuite extends FunSuite {
               |0.0 0.1 0.2 | 0.0 0.1 0.2""".stripMargin
     }
 
-    test("scalar product") {
+    test("psp - scalar product") {
         new TestNetworks {
-            assert(nn1.scalarProduct(input, input) === 5)
+            assert(new LinearLayer(List()).psp(input, input) === 5)
         }
     }
 
