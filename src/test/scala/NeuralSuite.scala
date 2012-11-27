@@ -20,11 +20,11 @@ class NeuralSuite extends FunSuite {
        
         
         //layer definitions
-        val layerOfZeroes = new BiasLayer(List(zeroNeuronWeights))
-        val layerWithOneNeuron = new BiasLayer(List(neuronWeights))
-        val layerWithTwoNeurons = new BiasLayer(List(neuronWeights, neuronWeights))
-        val layerWithNoBiasI2O1 = new NoBiasLayer(List(List(1.0, 0.5)))
-        val layerWithIncorrectBiasI2O1 = new NoBiasLayer(List(List(666.0, 1.0, 0.5)))
+        val layerOfZeroes = new LinearLayer(List(zeroNeuronWeights))
+        val layerWithOneNeuron = new LinearLayer(List(neuronWeights))
+        val layerWithTwoNeurons = new LinearLayer(List(neuronWeights, neuronWeights))
+        val layerWithNoBiasI2O1 = new LinearLayer(List(List(1.0, 0.5)), false)
+        val layerWithIncorrectBiasI2O1 = new LinearLayer(List(List(666.0, 1.0, 0.5)), false)
 
         val endLayer = List(neuronWithSingleInputWeight)
         //weights definition
@@ -34,11 +34,11 @@ class NeuralSuite extends FunSuite {
         val twoLayersWithSingleNeuron = List(endLayer, layerWithOneNeuron)
 
         //neural network definitions
-        val nn0 = new NeuralNetwork(oneLayerOfZeroes, linearActivationFunction)
-        val nn1 = new NeuralNetwork(oneLayerWeights, linearActivationFunction)
-        val nn12 = new NeuralNetwork(oneLayerTwoNeuronsWeights, linearActivationFunction)
-        val nnNoBiasI2O1 = new NeuralNetwork(List(layerWithNoBiasI2O1), linearActivationFunction)
-        val nnNoBiasIncorrectI2O1 = new NeuralNetwork(List(layerWithIncorrectBiasI2O1), linearActivationFunction)
+        val nn0 = new NeuralNetwork(oneLayerOfZeroes)
+        val nn1 = new NeuralNetwork(oneLayerWeights)
+        val nn12 = new NeuralNetwork(oneLayerTwoNeuronsWeights)
+        val nnNoBiasI2O1 = new NeuralNetwork(List(layerWithNoBiasI2O1))
+        val nnNoBiasIncorrectI2O1 = new NeuralNetwork(List(layerWithIncorrectBiasI2O1))
 
         //test inputs
         val input = List(0.0, 1.0, 2.0)
@@ -46,11 +46,6 @@ class NeuralSuite extends FunSuite {
         val weightsString =
             """0.0 0.1 0.2 | 0.0 0.1 0.2
               |0.0 0.1 0.2 | 0.0 0.1 0.2""".stripMargin
-    }
-
-    test("calculate neuron output") {
-        val neuron = new Neuron((x: Double) => x)
-        assert(neuron.calculate(2.5) === 2.5)
     }
 
     test("scalar product") {
@@ -77,9 +72,9 @@ class NeuralSuite extends FunSuite {
     test("no bias weights") {
         new TestNetworks {
             val parser = new FileParserNeuralNetwork("src/test/resources/noBiasWeights.txt")
-            val output = List(new NoBiasLayer(List(List(0.1, 0.2),
-                                                   List(0.1, 0.2))),
-                              new BiasLayer(List(List(0.0, 0.1, 0.2),
+            val output = List(new LinearLayer(List(List(0.1, 0.2),
+                                                   List(0.1, 0.2)), false),
+                              new LinearLayer(List(List(0.0, 0.1, 0.2),
                                                  List(0.0, 0.1, 0.2))))
 	    
             assert(parser.weightsFromFile === output)
@@ -93,7 +88,7 @@ class NeuralSuite extends FunSuite {
                   |0.0 0.0 0.0 | 0.0 0.0 0.0""".stripMargin
             val w = weights(weightsString)
             val fa = (x: Double) => x
-            val nn = new NeuralNetwork(w, fa)
+            val nn = new NeuralNetwork(w)
             assert(nn.calculate(List(1.0, 1.0)) === List(0.0, 0.0))
         }
     }
@@ -102,8 +97,7 @@ class NeuralSuite extends FunSuite {
         new TestNetworks {
             override val weightsString = "-0.5 0.4 0.3 | -0.2 0.1 0.0"
             val w = weights(weightsString)
-            val fa = (x: Double) => x
-            val nn = new NeuralNetwork(w, fa)
+            val nn = new NeuralNetwork(w)
             val result = nn.calculate(List(1.0, 1.0))
             val exact = List(1.2, 0.3)
             assert(error(result, exact) < epsilon)
@@ -116,8 +110,7 @@ class NeuralSuite extends FunSuite {
                 """-0.3 0.2 0.1 | -0.3 0.2 0.1
                   |-0.1 0.2 0.3 | -0.1 0.2 0.3""".stripMargin
             val w = weights(weightsString)
-            val fa = (x: Double) => x
-            val nn = new NeuralNetwork(w, fa)
+            val nn = new NeuralNetwork(w)
             val result = nn.calculate(List(1.0, 1.0))
             val exact = List(0.48, 0.48)
             assert(error(result, exact) < epsilon)
@@ -132,7 +125,7 @@ class NeuralSuite extends FunSuite {
             val w = weights(weightsString)
             val fa = (x: Double) => x
             intercept[java.lang.AssertionError] {
-                val nn = new NeuralNetwork(w, fa)
+                val nn = new NeuralNetwork(w)
             }
         }
     }
@@ -172,7 +165,7 @@ class NeuralSuite extends FunSuite {
 
     test("random network generator") {
         new TestNetworks {
-            val generated = new RandomWeightsGenerator().randomLayers(List(1,2,3), linearActivationFunction)
+            val generated = new RandomWeightsGenerator().randomLayers(List(1,2,3))
             assert(generated.length === 2)
             assert(generated(0).layer.length === 1)
             assert(generated(0).layer(0).length === 3)

@@ -7,9 +7,12 @@ object NeuralNetwork {
     type WeightMatrix = List[NeuronWeights]
     type Weights = List[Layer]
 
-    abstract class Layer (var layer: List[NeuronWeights])
-    case class BiasLayer (layerz: List[NeuronWeights]) extends Layer (layerz)
-    case class NoBiasLayer (layerz: List[NeuronWeights]) extends Layer(layerz)
+    abstract class Layer (var layer: List[NeuronWeights], val bias: Boolean) {
+    	 def calculate(x: Double): Double
+    }
+    case class LinearLayer (layerz: List[NeuronWeights], biasz: Boolean = true) extends Layer (layerz, biasz) {
+    	 override def calculate(x: Double): Double = x
+    }
 
     trait WeightsPrinter {
         def weightsToString (weights: Weights): String =
@@ -25,11 +28,7 @@ object NeuralNetwork {
                 weight.toString + " ").mkString
     }
 
-    class Neuron(val activationFunction: Double => Double) {
-        def calculate(x: Double): Double = activationFunction(x)
-    }
-
-    class NeuralNetwork (val weights: Weights, activationFunction: Double => Double) extends WeightsPrinter {
+    class NeuralNetwork (val weights: Weights) extends WeightsPrinter {
         def checkWeights(weights: Weights): Boolean =
             weights match {
                 case Nil => {
@@ -50,7 +49,6 @@ object NeuralNetwork {
             }
         assert(checkWeights(weights))
         val bias = -1.0
-        val neuron = new Neuron(activationFunction)
         def scalarProduct(l1: List[Double], l2: List[Double]) = {
             if (l1.length == l2.length) (for {(x, y) <- l1 zip l2} yield x * y).sum
             else throw new Exception("");
@@ -71,10 +69,10 @@ object NeuralNetwork {
         }
         def calculate1(input : List[Double], layerInput : Layer): List[Double] = {
             for (neuronWeights <- layerInput.layer) yield
-                layerInput match {
-                    case BiasLayer(lay) => neuron.calculate(scalarProduct(neuronWeights, bias :: input))
-                    case NoBiasLayer(lay) => neuron.calculate(scalarProduct(neuronWeights, input))
-                }
+                if (layerInput.bias) 
+                   layerInput.calculate(scalarProduct(neuronWeights, bias :: input))
+                else
+		   layerInput.calculate(scalarProduct(neuronWeights, input))
         }
 
         override def toString =
@@ -100,9 +98,9 @@ object NeuralNetwork {
                    random.nextDouble()).toList).toList
        }
 
-       def randomLayers(sizes : List[Integer], activationFunction: Double => Double) : List[Layer] = {
+       def randomLayers(sizes : List[Integer]) : List[Layer] = {
            (for ( i <- 0 until (sizes.length - 1)) yield
-              new BiasLayer( randomLayer(sizes(i+1) + 1, sizes(i)))).toList
+              new LinearLayer( randomLayer(sizes(i+1) + 1, sizes(i)))).toList
        }
     }
 }

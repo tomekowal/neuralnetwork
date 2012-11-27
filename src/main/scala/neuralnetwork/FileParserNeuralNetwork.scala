@@ -14,8 +14,8 @@ trait StringParserNeuralNetwork {
                                          (for (weight <- neuronWeights.split(' ') if weight != "") yield
                                              weight.toDouble).toList).toList
                       nobias match {
-                          case null => new BiasLayer(nW)
-                          case _ => new NoBiasLayer(nW)
+                          case null => new LinearLayer(nW, true)
+                          case _ => new LinearLayer(nW, false)
                      }
                   }).toList
 }
