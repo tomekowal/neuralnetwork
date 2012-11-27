@@ -7,9 +7,9 @@ object NeuralNetwork {
     type WeightMatrix = List[NeuronWeights]
     type Weights = List[Layer]
 
-    abstract class Layer (val layer: List[NeuronWeights])
-    case class BiasLayer (override val layer: List[NeuronWeights]) extends Layer (layer)
-    case class NoBiasLayer (override val layer: List[NeuronWeights]) extends Layer(layer)
+    abstract class Layer (var layer: List[NeuronWeights])
+    case class BiasLayer (layerz: List[NeuronWeights]) extends Layer (layerz)
+    case class NoBiasLayer (layerz: List[NeuronWeights]) extends Layer(layerz)
 
     trait WeightsPrinter {
         def weightsToString (weights: Weights): String =
@@ -80,6 +80,16 @@ object NeuralNetwork {
         override def toString =
             weightsToString(weights)
 
+	/** Randomize network's layers */
+        def randomize(): Weights = {
+            val random = new scala.util.Random();
+            for (i <- 0 until weights.length)
+                weights(i).layer = (for (nW <- weights(i).layer) yield
+                                       (for (w <- nW) yield
+                                           random.nextDouble()).toList).toList
+            weights            
+        }
+
     }
 
     class RandomWeightsGenerator {
@@ -90,7 +100,7 @@ object NeuralNetwork {
                    random.nextDouble()).toList).toList
        }
 
-       def randomLayers(sizes : List[Integer]) : List[Layer] = {
+       def randomLayers(sizes : List[Integer], activationFunction: Double => Double) : List[Layer] = {
            (for ( i <- 0 until (sizes.length - 1)) yield
               new BiasLayer( randomLayer(sizes(i+1) + 1, sizes(i)))).toList
        }

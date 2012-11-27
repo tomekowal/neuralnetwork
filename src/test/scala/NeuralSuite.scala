@@ -13,8 +13,6 @@ class NeuralSuite extends FunSuite {
 
         val epsilon = 0.0000001
 
-        //activation function
-        val linearActivationFunction = (x: Double) => x
         //neuron weights
         val neuronWithSingleInputWeight: NeuronWeights = List(0.5)
         val neuronWeights: NeuronWeights = List(0.0, 0.1, 0.2)
@@ -75,7 +73,7 @@ class NeuralSuite extends FunSuite {
             assert(parser.weightsFromFile === List(layerWithTwoNeurons, layerWithTwoNeurons))
         }
     }
-
+ 
     test("no bias weights") {
         new TestNetworks {
             val parser = new FileParserNeuralNetwork("src/test/resources/noBiasWeights.txt")
@@ -83,6 +81,7 @@ class NeuralSuite extends FunSuite {
                                                    List(0.1, 0.2))),
                               new BiasLayer(List(List(0.0, 0.1, 0.2),
                                                  List(0.0, 0.1, 0.2))))
+	    
             assert(parser.weightsFromFile === output)
         }
     }
@@ -173,7 +172,7 @@ class NeuralSuite extends FunSuite {
 
     test("random network generator") {
         new TestNetworks {
-            val generated = new RandomWeightsGenerator().randomLayers(List(1,2,3))
+            val generated = new RandomWeightsGenerator().randomLayers(List(1,2,3), linearActivationFunction)
             assert(generated.length === 2)
             assert(generated(0).layer.length === 1)
             assert(generated(0).layer(0).length === 3)
