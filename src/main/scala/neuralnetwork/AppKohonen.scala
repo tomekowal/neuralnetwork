@@ -4,6 +4,7 @@ import scala.math._
 
 object AppKohonen extends App {
     val inputs = new InputParser("koh.txt").inputsFromFile
+    val our = new InputParser("kohour.txt").inputsFromFile
 
     val kohonenLay = new KohonenLayer(9, 4)
     val nn = new NeuralNetwork(List(kohonenLay))
@@ -23,7 +24,7 @@ object AppKohonen extends App {
     }
 
     /** epochs, LEARN_RATE, CONSCIENCE, NEIGHBOURHOOD_SHAPE, DIST */
-    def learn(randoms : (Double, Double), parameters : List[(Int,Double,Double,Int,Int)]) = {
+    def learn(inputs : List[List[Double]], randoms : (Double, Double), parameters : List[(Int,Double,Double,Int,Int)]) = {
         nn.randomize(randoms._1, randoms._2)
         for { (epochs, learn_rate, conscience, shape, neigh) <- parameters } yield {
             kohonenLay.LEARN_RATE = learn_rate
@@ -36,7 +37,10 @@ object AppKohonen extends App {
         println
     }
 
-    learn((0.0, 1.0), List((8000, 0.06, 1, 1, 3), (8000, 0.03, 0.5, 1, 2), (8000, 0.015, 0.25, 1, 1), (8000, 0.0075, 0.125, 1, 0)))
+    learn(inputs, (0.0, 1.0), List((8000, 0.06, 1, 1, 3), (8000, 0.03, 0.5, 1, 2), (8000, 0.015, 0.25, 1, 1), (8000, 0.0075, 0.125, 1, 0)))
     printResults(nn, inputs, "Obrazki")
+    
+    learn(our, (0.0, 1.0), List((8000, 0.06, 1, 1, 3), (8000, 0.03, 0.5, 1, 2), (8000, 0.015, 0.25, 1, 1), (8000, 0.0075, 0.125, 1, 0)))
+    printResults(nn, our, "Nasze Obrazki")
 
 }
