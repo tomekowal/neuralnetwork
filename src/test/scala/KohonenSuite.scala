@@ -58,8 +58,8 @@ class KohonenSuite extends FunSuite {
         new TestNetworks {
             nn4i2o.randomize()
 
-            neighLayer.neighbourhood_shape = 1
-            neighLayer.neighbourhood_dist = 1
+            neighLayer.neigh_shape = 1
+            neighLayer.neigh_dist = 1
             val nghb: NeuronWeights = List(0.0, 0.5, 0.5, 0.5)
             val nghb1: NeuronWeights = List(0.5, 0.5, 0.5, 0.0)
 
@@ -72,8 +72,8 @@ class KohonenSuite extends FunSuite {
         new TestNetworks {
             nn4i4o.randomize()
 
-            neighLayer2D.neighbourhood_shape = 2
-            neighLayer2D.neighbourhood_dist = 1
+            neighLayer2D.neigh_shape = 2
+            neighLayer2D.neigh_dist = 1
             val nghb: NeuronWeights = List(0.3, 0.5, 0.5, 0.5)
             val nghb1: NeuronWeights = List(0.5, 0.5, 0.5, 0.3)
             val nghb2: NeuronWeights = List(0.5, 0.3, 0.5, 0.5)
@@ -90,8 +90,8 @@ class KohonenSuite extends FunSuite {
         new TestNetworks {
             nn4i4o.randomize()
 
-            neighLayer2D.neighbourhood_shape = 2
-            neighLayer2D.neighbourhood_dist = 0
+            neighLayer2D.neigh_shape = 2
+            neighLayer2D.neigh_dist = 0
             val nghb: NeuronWeights = List(0.0, 0.5, 0.5, 0.5)
             val nghb1: NeuronWeights = List(0.5, 0.5, 0.0, 0.0)
             val nghb2: NeuronWeights = List(0.5, 0.0, 0.0, 0.5)

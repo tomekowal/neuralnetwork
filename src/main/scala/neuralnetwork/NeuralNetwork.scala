@@ -53,10 +53,10 @@ object NeuralNetwork {
     case class KohonenLayer (layerx: List[NeuronWeights]) extends Layer (layerx, false) {
          def this(inputs : Int, outputs : Int) = this( (for {i <- 0 to outputs-1} yield Array.fill(inputs)(0.0).toList).toList )
 
-        var LEARN_RATE = 0.3
+        var LEARN_RATE = 0.03
         var CONSCIENCE = 0.3
-        var neighbourhood_shape = 1
-        var neighbourhood_dist = 0
+        var neigh_shape = 1
+        var neigh_dist = 0
         var winning_count = Array.fill(layer.length)(0)
        
         override def activationFunction(x: Double): Double = x
@@ -103,16 +103,17 @@ object NeuralNetwork {
             val min = (x : Int, y : Int) => if (x<y) x else y
             val max = (x : Int, y : Int) => if (x>y) x else y
             val range = (x : Int, dist : Int, maximal : Int) => (max(0, x-dist) to min(maximal-1, x + dist)).toList
-            neighbourhood_shape match {
+            neigh_shape match {
                 case 1 =>
-                    range(i, neighbourhood_dist, layer.length)
+                    range(i, neigh_dist, layer.length)
                 case 2 =>
                     val row_size = sqrt(layer.length) toInt
                     val row = i / row_size
                     val col = i % row_size
  
-                    ((for {rowx <- range(row, neighbourhood_dist, row_size)} yield rowx*row_size + col).toList 
-                     ++ (for {colx <- range(col, neighbourhood_dist, row_size)} yield row*row_size + colx).toList)
+                    (for { rowz <- -neigh_dist to neigh_dist; colz <- -neigh_dist to neigh_dist 
+                          if (rowz >= 0 && rowz < row_size && colz >= 0 && colz < row_size && abs(rowz) + abs(colz) < neigh_dist)} 
+                              yield rowz*row_size + colz).toList 
                                         
             }
         }
@@ -128,11 +129,11 @@ object NeuralNetwork {
     trait WeightsPrinter {
         def weightsToString (weights: Weights): String =
             (for (layer <- weights) yield
-                layerToString(layer.layer) + "\n").mkString
+                layerToString(layer.layer) + "\n\n").mkString
 
         def layerToString(layer: WeightMatrix): String =
             (for (neuronWeights <- layer) yield
-                neuronWeightsToString(neuronWeights) + "| ").mkString
+                neuronWeightsToString(neuronWeights) + "\n ").mkString
 
         def neuronWeightsToString(neuronWeights: NeuronWeights): String =
             (for (weight <- neuronWeights) yield
