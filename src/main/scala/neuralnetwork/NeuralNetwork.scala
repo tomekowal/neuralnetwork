@@ -12,18 +12,34 @@ object NeuralNetwork {
     abstract class Layer (var layer: List[NeuronWeights], val bias: Boolean) {
          def activationFunction(x: Double): Double
 
-         def calculate(weights: NeuronWeights, inps: List[Double]) = {
-            var inputs : List[Double] = null
-	    if (bias) inputs = -1.0 :: inps else inputs = inps
-	       
-	    if (weights.length != inputs.length) 
-	       throw new Exception("weights and inputs not of equal length...")
-	    psp(weights, inputs)
+         def calculate(inps: List[Double]) = {
+                var inputs : List[Double] = null
+                if (bias) inputs = -1.0 :: inps else inputs = inps
+
+            for (weights <- layer) yield {
+                if (weights.length != inputs.length) 
+                    throw new Exception("weights and inputs not of equal length...")
+                activationFunction(psp(weights, inputs))
+            }
 	 }
 
          def psp(weights: NeuronWeights, inputs: List[Double]) = {
             (for {(x, y) <- weights zip inputs} yield x * y).sum
         }
+
+        def replace_weights(which : Int, withWhat : NeuronWeights) = {
+            replace_weights1(which, withWhat, layer, List())
+        }
+
+        def replace_weights1(which : Int, withWhat : NeuronWeights, weights : List[NeuronWeights], acu : List[NeuronWeights]): List[NeuronWeights] = {
+            val current :: nextNeurons = weights
+            if (which == 0)
+                acu.reverse ++ (withWhat :: nextNeurons)
+            else
+                replace_weights1(which-1, withWhat, nextNeurons, current::acu)
+        }
+
+        def learn(trainingSet : List[List[Double]]) : List[NeuronWeights] = null
     }
     case class LinearLayer (layerx: List[NeuronWeights], biasx: Boolean = true) extends Layer (layerx, biasx) {
          override def activationFunction(x: Double): Double = x
@@ -34,8 +50,63 @@ object NeuralNetwork {
     case class ThresholdLayer (layerx: List[NeuronWeights], biasx: Boolean = true) extends Layer (layerx, biasx) {
          override def activationFunction(x: Double): Double = if (x > 0) 1.0 else 0.0
     }
+    case class KohonenLayer (layerx: List[NeuronWeights], biasx: Boolean = false) extends Layer (layerx, biasx) {
+        var LEARN_RATE = 0.5
+        var neighbourhood_shape = 1
+        var neighbourhood_dist = 1
+       
+        override def activationFunction(x: Double): Double = x
+        override def psp(weights: NeuronWeights, inputs: List[Double]) = {
+            (for {(x, y) <- weights zip inputs} yield (x - y)*(x - y)).sum
+        }
+        override def calculate(inps: List[Double]) = {
+            var inputs : List[Double] = null
+	    if (bias) inputs = -1.0 :: inps else inputs = inps
+	       
+	    val outputs = (for (weights <- layer) yield {
+                              if (weights.length != inputs.length) 
+                                  throw new Exception("weights and inputs not of equal length...")
+                              psp(weights, inputs)
+                          }).toList
+            val min = outputs.min
+            val result = Array.fill(outputs.length) (0.0)
+            result(outputs.indexOf(min)) = 1.0
+            result.toList
+         }
+        override def learn(trainingSet : List[List[Double]]) : List[NeuronWeights] = {
+            for {trainingExample <- trainingSet} yield { 
+                val result = calculate(trainingExample)
+                val winner = result.indexOf(1.0)
+                val neurons_to_teach = get_neighbourhood(winner)
+                teach(neurons_to_teach, trainingExample)
+            }
+            layer
+        }
 
+        def get_neighbourhood(i : Int) : List[Int] = {
+            val min = (x : Int, y : Int) => if (x<y) x else y
+            val max = (x : Int, y : Int) => if (x>y) x else y
+            val range = (x : Int, dist : Int, maximal : Int) => (max(0, x-dist) to min(maximal-1, x + dist)).toList
+            neighbourhood_shape match {
+                case 1 =>
+                    range(i, neighbourhood_dist, layer.length)
+                case 2 =>
+                    val row_size = sqrt(layer.length) toInt
+                    val row = i / row_size
+                    val col = i % row_size
+                    (for {rowx <- range(row, neighbourhood_dist, row_size); colx <- range(col, neighbourhood_dist, row_size)} yield
+                         rowx*row_size + colx).toList
+                                        
+            }
+        }
+           
 
+        def teach(neurons : List[Int], input : List[Double]) {
+            for {neuron <- neurons} yield
+                layer = replace_weights(neuron, (for {(weight, inp) <- (layer(neuron) zip input)} yield  weight * (1 - LEARN_RATE) + LEARN_RATE * inp).toList)
+        }
+
+    }
 
     trait WeightsPrinter {
         def weightsToString (weights: Weights): String =
@@ -79,17 +150,18 @@ object NeuralNetwork {
         def calculate0(input: List[Double], weights: Weights): List[Double] = {
             weights match {
                 case inputLayer :: Nil =>
-                    calculate1(input, inputLayer)
+                    inputLayer.calculate(input)
                 case currentLayer :: lowerLayers => {
                     val precomputed = calculate0(input, lowerLayers)
-                    calculate1(precomputed, currentLayer)
+                    currentLayer.calculate(precomputed)
                 }
                 case Nil => throw new IllegalArgumentException("Weight list cannot be empty")
             }
         }
-        def calculate1(input : List[Double], layerInput : Layer): List[Double] = {
-            for (neuronWeights <- layerInput.layer) yield
-       	        layerInput.calculate(neuronWeights,input)
+
+        def learn(trainingSet : List[List[Double]], epoches : Int) = {
+             for (epoche <- (0 to epoches-1).toList)
+                 for {layer <- weights} layer.learn(trainingSet)
         }
 
         override def toString =
