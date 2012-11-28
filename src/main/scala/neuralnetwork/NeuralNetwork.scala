@@ -50,11 +50,13 @@ object NeuralNetwork {
     case class ThresholdLayer (layerx: List[NeuronWeights], biasx: Boolean = true) extends Layer (layerx, biasx) {
          override def activationFunction(x: Double): Double = if (x > 0) 1.0 else 0.0
     }
-    case class KohonenLayer (layerx: List[NeuronWeights], biasx: Boolean = false) extends Layer (layerx, biasx) {
-        var LEARN_RATE = 0.5
-        var CONSCIENCE = 0.2
+    case class KohonenLayer (layerx: List[NeuronWeights]) extends Layer (layerx, false) {
+         def this(inputs : Int, outputs : Int) = this( (for {i <- 0 to outputs-1} yield Array.fill(inputs)(0.0).toList).toList )
+
+        var LEARN_RATE = 0.3
+        var CONSCIENCE = 0.3
         var neighbourhood_shape = 1
-        var neighbourhood_dist = 1
+        var neighbourhood_dist = 0
         var winning_count = Array.fill(layer.length)(0)
        
         override def activationFunction(x: Double): Double = x
@@ -183,12 +185,13 @@ object NeuralNetwork {
             weightsToString(weights)
 
 	/** Randomize network's layers */
-        def randomize(): Weights = {
+        def randomize(a : Double = 0.0, b : Double = 1.0): Weights = {
             val random = new scala.util.Random();
+            val len = b - a
             for (i <- 0 until weights.length)
                 weights(i).layer = (for (nW <- weights(i).layer) yield
                                        (for (w <- nW) yield
-                                           random.nextDouble()).toList).toList
+                                           a + random.nextDouble()*len).toList).toList
             weights            
         }
 

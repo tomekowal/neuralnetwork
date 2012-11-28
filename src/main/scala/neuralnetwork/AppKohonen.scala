@@ -22,12 +22,18 @@ object AppKohonen extends App {
         }
     }
 
-    def learn() = {
-        nn.randomize(0.0, 0.1)
-        nn.learn(inputs, 32000)       
+    /** epochs, LEARN_RATE, CONSCIENCE, NEIGHBOURHOOD */
+    def learn(randoms : (Double, Double), parameters : List[(Int,Double,Double,Int)]) = {
+        nn.randomize(randoms._1, randoms._2)
+        for { (epochs, learn_rate, conscience, neigh) <- parameters } yield {
+            kohonenLay.LEARN_RATE = learn_rate
+            kohonenLay.CONSCIENCE = conscience
+            kohonenLay.neighbourhood_dist = neigh
+            nn.learn(inputs, epochs)
+        }
     }
 
-    learn
+    learn((0.0, 1.0), List((8000, 0.3, 0.5, 0), (32000, 0.3, 0.3, 1)))
     printResults(nn, inputs, "Obrazki")
 
 }

@@ -19,9 +19,9 @@ class KohonenSuite extends FunSuite {
         val neuronWeights1: NeuronWeights = List(0.4, 0.4, 0.4)
 
         //layer definitions
-        val kohLayer = new KohonenLayer(List(neuronWeights, neuronWeights1), false)
-        val neighLayer = new KohonenLayer(List(List(0.0, 0.0, 0.0, 0.0), List(0.0, 0.0, 0.0, 0.0)))
-        val neighLayer2D = new KohonenLayer(List(List(0.0, 0.0, 0.0, 0.0), List(0.0, 0.0, 0.0, 0.0), List(0.0, 0.0, 0.0, 0.0), List(0.0, 0.0, 0.0, 0.0)))
+        val kohLayer = new KohonenLayer(List(neuronWeights, neuronWeights1))
+        val neighLayer = new KohonenLayer(4, 2)
+        val neighLayer2D = new KohonenLayer(4, 4)
 
         val nn = new NeuralNetwork(List(kohLayer))
         val nn1i1o = new NeuralNetwork(List(new KohonenLayer(List(neuronWeights))))
@@ -47,7 +47,7 @@ class KohonenSuite extends FunSuite {
 
    test("Teaching one input one output network eventually produces : weight = training_sample") {
         new TestNetworks {
-            nn1i1o.randomize()
+            nn1i1o.randomize(0.0, 0.4)
             nn1i1o.learn(List(neuronWeights), 300)
             assert(nn1i1o.calculate(neuronWeights) === List(1.0))
             assert(error(nn1i1o.weights(0).layer(0), neuronWeights) < epsilon)
@@ -78,6 +78,24 @@ class KohonenSuite extends FunSuite {
             val nghb1: NeuronWeights = List(0.5, 0.5, 0.5, 0.3)
             val nghb2: NeuronWeights = List(0.5, 0.3, 0.5, 0.5)
             val nghb3: NeuronWeights = List(0.5, 0.5, 0.5, 0.5)
+
+            nn4i4o.learn(List(nghb, nghb1, nghb2, nghb3), 16000)
+            assert(nn4i4o.calculate(nghb) != nn4i4o.calculate(nghb1), nn4i4o.calculate(nghb) + " compare to " + nn4i4o.calculate(nghb1) + ":" + nn4i4o.toString)
+            assert(nn4i4o.calculate(nghb) != nn4i4o.calculate(nghb2), nn4i4o.calculate(nghb) + " compare to " + nn4i4o.calculate(nghb2) + ":" + nn4i4o.toString)
+            assert(nn4i4o.calculate(nghb) != nn4i4o.calculate(nghb3), nn4i4o.calculate(nghb) + " compare to " + nn4i4o.calculate(nghb3) + ":" + nn4i4o.toString)
+        }
+   }
+
+   test("Teaching with conscience only") {
+        new TestNetworks {
+            nn4i4o.randomize()
+
+            neighLayer2D.neighbourhood_shape = 2
+            neighLayer2D.neighbourhood_dist = 0
+            val nghb: NeuronWeights = List(0.0, 0.5, 0.5, 0.5)
+            val nghb1: NeuronWeights = List(0.5, 0.5, 0.0, 0.0)
+            val nghb2: NeuronWeights = List(0.5, 0.0, 0.0, 0.5)
+            val nghb3: NeuronWeights = List(0.5, 0.5, 0.5, 0.0)
 
             nn4i4o.learn(List(nghb, nghb1, nghb2, nghb3), 16000)
             assert(nn4i4o.calculate(nghb) != nn4i4o.calculate(nghb1), nn4i4o.calculate(nghb) + " compare to " + nn4i4o.calculate(nghb1) + ":" + nn4i4o.toString)
