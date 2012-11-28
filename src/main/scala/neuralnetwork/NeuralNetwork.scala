@@ -52,35 +52,49 @@ object NeuralNetwork {
     }
     case class KohonenLayer (layerx: List[NeuronWeights], biasx: Boolean = false) extends Layer (layerx, biasx) {
         var LEARN_RATE = 0.5
+        var CONSCIENCE = 0.2
         var neighbourhood_shape = 1
         var neighbourhood_dist = 1
+        var winning_count = Array.fill(layer.length)(0)
        
         override def activationFunction(x: Double): Double = x
         override def psp(weights: NeuronWeights, inputs: List[Double]) = {
             (for {(x, y) <- weights zip inputs} yield (x - y)*(x - y)).sum
         }
-        override def calculate(inps: List[Double]) = {
-            var inputs : List[Double] = null
-	    if (bias) inputs = -1.0 :: inps else inputs = inps
-	       
-	    val outputs = (for (weights <- layer) yield {
-                              if (weights.length != inputs.length) 
-                                  throw new Exception("weights and inputs not of equal length...")
-                              psp(weights, inputs)
-                          }).toList
+        
+        def output_distances(inputs: List[Double]) = {
+	    (for (weights <- layer) yield {
+                if (weights.length != inputs.length) 
+                    throw new Exception("weights and inputs not of equal length...")
+                psp(weights, inputs)}).toList
+        }        
+
+        def mark_winner(outputs : List[Double]) = {
             val min = outputs.min
             val result = Array.fill(outputs.length) (0.0)
             result(outputs.indexOf(min)) = 1.0
             result.toList
-         }
+        }
+
+        override def calculate(inputs: List[Double]) = {
+	    mark_winner(output_distances(inputs))
+        }
+
         override def learn(trainingSet : List[List[Double]]) : List[NeuronWeights] = {
             for {trainingExample <- trainingSet} yield { 
-                val result = calculate(trainingExample)
+                val result = adjusted_distance(trainingExample)
                 val winner = result.indexOf(1.0)
                 val neurons_to_teach = get_neighbourhood(winner)
                 teach(neurons_to_teach, trainingExample)
             }
             layer
+        }
+ 
+        def adjusted_distance(inputs: List[Double]) : List[Double] = {
+            val len = layer.length
+	    val result = mark_winner( (for {(output, winFreq) <- (output_distances(inputs) zip winning_count)} yield output + CONSCIENCE*(winFreq/len - 1)).toList )
+            winning_count(result.indexOf(1.0)) += 1
+            result
         }
 
         def get_neighbourhood(i : Int) : List[Int] = {
@@ -94,8 +108,9 @@ object NeuralNetwork {
                     val row_size = sqrt(layer.length) toInt
                     val row = i / row_size
                     val col = i % row_size
-                    (for {rowx <- range(row, neighbourhood_dist, row_size); colx <- range(col, neighbourhood_dist, row_size)} yield
-                         rowx*row_size + colx).toList
+ 
+                    ((for {rowx <- range(row, neighbourhood_dist, row_size)} yield rowx*row_size + col).toList 
+                     ++ (for {colx <- range(col, neighbourhood_dist, row_size)} yield row*row_size + colx).toList)
                                         
             }
         }
