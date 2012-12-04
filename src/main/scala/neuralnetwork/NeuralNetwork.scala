@@ -53,10 +53,10 @@ object NeuralNetwork {
     case class KohonenLayer (layerx: List[NeuronWeights]) extends Layer (layerx, false) {
          def this(inputs : Int, outputs : Int) = this( (for {i <- 0 to outputs-1} yield Array.fill(inputs)(0.0).toList).toList )
 
-        var LEARN_RATE = 0.03
-        var CONSCIENCE = 0.3
-        var neigh_shape = 1
-        var neigh_dist = 0
+        var LEARN_RATE : Double = 0.03
+        var CONSCIENCE : Double = 1.0
+        var neigh_shape : Int = 1
+        var neigh_dist : Int= 0
         var winning_count = Array.fill(layer.length)(0)
        
         override def activationFunction(x: Double): Double = x
@@ -99,13 +99,17 @@ object NeuralNetwork {
             result
         }
 
-        def get_neighbourhood(i : Int) : List[Int] = {
+        def get_neighbourhood(i : Int) : List[(Int, Int)] = {
             val min = (x : Int, y : Int) => if (x<y) x else y
             val max = (x : Int, y : Int) => if (x>y) x else y
-            val range = (x : Int, dist : Int, maximal : Int) => (max(0, x-dist) to min(maximal-1, x + dist)).toList
+
             neigh_shape match {
                 case 1 =>
-                    range(i, neigh_dist, layer.length)
+                    val row_size = layer.length
+                    (for { x <- -neigh_dist to neigh_dist
+                          if ( x+i>= 0 && x+i< row_size ) } 
+                              yield (abs(x-i), x+i) ).toList 
+
                 case 2 =>
                     val row_size = sqrt(layer.length) toInt
                     val row = i / row_size
@@ -113,15 +117,15 @@ object NeuralNetwork {
  
                     (for { rowz <- -neigh_dist to neigh_dist; colz <- -neigh_dist to neigh_dist 
                           if (rowz >= 0 && rowz < row_size && colz >= 0 && colz < row_size && abs(rowz) + abs(colz) < neigh_dist)} 
-                              yield rowz*row_size + colz).toList 
+                              yield (abs(rowz) + abs(colz), rowz*row_size + colz)).toList 
                                         
             }
         }
            
 
-        def teach(neurons : List[Int], input : List[Double]) {
-            for {neuron <- neurons} yield
-                layer = replace_weights(neuron, (for {(weight, inp) <- (layer(neuron) zip input)} yield  weight * (1 - LEARN_RATE) + LEARN_RATE * inp).toList)
+        def teach(neurons : List[(Int, Int)], input : List[Double]) {
+            for {(dist, neuron) <- neurons} yield
+                layer = replace_weights(neuron, (for {(weight, inp) <- (layer(neuron) zip input)} yield weight + (LEARN_RATE/(dist+1)) * (inp - weight)).toList)
         }
 
     }
@@ -160,7 +164,6 @@ object NeuralNetwork {
                 }
             }
         assert(checkWeights(weights))
-        val bias = -1.0
         
         def calculate(input: List[Double]) = {
             calculate0(input, weights)

@@ -63,7 +63,7 @@ class KohonenSuite extends FunSuite {
             val nghb: NeuronWeights = List(0.0, 0.5, 0.5, 0.5)
             val nghb1: NeuronWeights = List(0.5, 0.5, 0.5, 0.0)
 
-            nn4i2o.learn(List(nghb, nghb1), 16000)
+            nn4i2o.learn(List(nghb, nghb1), 32000)
             assert(nn4i2o.calculate(nghb) != nn4i2o.calculate(nghb1), nn4i2o.calculate(nghb) + " compare to " + nn4i2o.calculate(nghb1) + ":" + nn4i2o.toString)
         }
    }
@@ -79,7 +79,7 @@ class KohonenSuite extends FunSuite {
             val nghb2: NeuronWeights = List(0.5, 0.3, 0.5, 0.5)
             val nghb3: NeuronWeights = List(0.5, 0.5, 0.5, 0.5)
 
-            nn4i4o.learn(List(nghb, nghb1, nghb2, nghb3), 16000)
+            nn4i4o.learn(List(nghb, nghb1, nghb2, nghb3), 32000)
             assert(nn4i4o.calculate(nghb) != nn4i4o.calculate(nghb1), nn4i4o.calculate(nghb) + " compare to " + nn4i4o.calculate(nghb1) + ":" + nn4i4o.toString)
             assert(nn4i4o.calculate(nghb) != nn4i4o.calculate(nghb2), nn4i4o.calculate(nghb) + " compare to " + nn4i4o.calculate(nghb2) + ":" + nn4i4o.toString)
             assert(nn4i4o.calculate(nghb) != nn4i4o.calculate(nghb3), nn4i4o.calculate(nghb) + " compare to " + nn4i4o.calculate(nghb3) + ":" + nn4i4o.toString)
@@ -97,7 +97,7 @@ class KohonenSuite extends FunSuite {
             val nghb2: NeuronWeights = List(0.5, 0.0, 0.0, 0.5)
             val nghb3: NeuronWeights = List(0.5, 0.5, 0.5, 0.0)
 
-            nn4i4o.learn(List(nghb, nghb1, nghb2, nghb3), 16000)
+            nn4i4o.learn(List(nghb, nghb1, nghb2, nghb3), 32000)
             assert(nn4i4o.calculate(nghb) != nn4i4o.calculate(nghb1), nn4i4o.calculate(nghb) + " compare to " + nn4i4o.calculate(nghb1) + ":" + nn4i4o.toString)
             assert(nn4i4o.calculate(nghb) != nn4i4o.calculate(nghb2), nn4i4o.calculate(nghb) + " compare to " + nn4i4o.calculate(nghb2) + ":" + nn4i4o.toString)
             assert(nn4i4o.calculate(nghb) != nn4i4o.calculate(nghb3), nn4i4o.calculate(nghb) + " compare to " + nn4i4o.calculate(nghb3) + ":" + nn4i4o.toString)
