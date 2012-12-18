@@ -1,3 +1,5 @@
+package neuralnetwork
+
 import neuralnetwork.NeuralNetwork._
 import neuralnetwork._
 
