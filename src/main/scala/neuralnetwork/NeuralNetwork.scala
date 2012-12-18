@@ -158,7 +158,6 @@ object NeuralNetwork {
                 case layer :: lowerLayers => {
                     val bias = if (layer.bias) 1 else 0
                     val lowerLayerNeuronsCount = lowerLayers.head.layer.length
-                    println(lowerLayerNeuronsCount)
                     val isAllRight = (
                         for (neuronWeights <- layer.layer) yield neuronWeights.length == (lowerLayerNeuronsCount + bias)
                     ).forall((bool) => bool)
