@@ -131,17 +131,23 @@ object NeuralNetwork {
     }
 
     trait WeightsPrinter {
+        def fmt(v: Any): String = v match {
+            case d : Double => "%1.5f" format d
+            case i : Int => i.toString
+            case _ => throw new IllegalArgumentException
+        }
+
         def weightsToString (weights: Weights): String =
             (for (layer <- weights) yield
                 layerToString(layer.layer) + "\n\n").mkString
 
         def layerToString(layer: WeightMatrix): String =
             (for (neuronWeights <- layer) yield
-                neuronWeightsToString(neuronWeights) + "\n ").mkString
+                neuronWeightsToString(neuronWeights) + "\n").mkString
 
         def neuronWeightsToString(neuronWeights: NeuronWeights): String =
             (for (weight <- neuronWeights) yield
-                weight.toString + " ").mkString
+                fmt(weight) + " ").mkString
     }
 
     class NeuralNetwork (val weights: Weights) extends WeightsPrinter {
