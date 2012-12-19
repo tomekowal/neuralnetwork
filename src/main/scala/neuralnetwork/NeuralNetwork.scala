@@ -18,7 +18,7 @@ object NeuralNetwork {
 
             for (weights <- layer) yield {
                 if (weights.length != inputs.length)
-                    throw new Exception("weights and inputs not of equal length...")
+                    throw new Exception("weights and inputs not of equal length" + weights.length.toString + inputs.length.toString)
                 activationFunction(psp(weights, inputs))
             }
 	 }
@@ -67,7 +67,7 @@ object NeuralNetwork {
         def output_distances(inputs: List[Double]) = {
 	    (for (weights <- layer) yield {
                 if (weights.length != inputs.length)
-                    throw new Exception("weights and inputs not of equal length...")
+                    throw new Exception("weights and inputs not of equal length" + weights.length.toString + inputs.length.toString)
                 psp(weights, inputs)}).toList
         }
 
