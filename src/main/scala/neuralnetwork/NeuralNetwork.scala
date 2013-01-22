@@ -10,10 +10,13 @@ object NeuralNetwork {
     type Weights = List[Layer]
 
     abstract class Layer (var layer: List[NeuronWeights], val bias: Boolean) {
+        var inputs : List[Double] = null
+        // deltas are calculated during back propagation
+        // they should be the same length as neuron weights
+        var deltas : List[Double] = null
          def activationFunction(x: Double): Double
 
          def calculate(inps: List[Double]) = {
-                var inputs : List[Double] = null
                 if (bias) inputs = -1.0 :: inps else inputs = inps
 
             for (weights <- layer) yield {
@@ -185,6 +188,49 @@ object NeuralNetwork {
                 }
                 case Nil => throw new IllegalArgumentException("Weight list cannot be empty")
             }
+        }
+
+        def calculateDeltas(networkOutput: List[Double], targetOutput: List[Double]) {
+            val outputDeltas = for ( (no, to) <- networkOutput zip targetOutput) yield to - no
+            weights match {
+                case outputLayer :: lowerLayers =>
+                    outputLayer.deltas = outputDeltas
+                case Nil =>
+                    throw new Exception("Empty network list")
+            }
+            calculateDeltas0(weights)
+        }
+
+        def calculateDeltas0(weights: Weights) {
+            weights match {
+                case Nil =>
+                    throw new Exception("Empty network list")
+                case layer :: Nil =>
+                    0 //we don't do anything here
+                case higherLayer :: lowerLayer :: rest =>
+                    lowerLayer.deltas = (for (i <- 0 to lowerLayer.layer.length - 1) yield {
+                        (for ((neuron, delta) <- higherLayer.layer zip higherLayer.deltas) yield {
+                            neuron(i) * delta
+                        }).toList.sum
+                    }).toList
+            }
+        }
+
+        def backPropagate(networkOutput: List[Double], targetOutput: List[Double], learnRate: Double) {
+            calculateDeltas(networkOutput, targetOutput)
+            for (layer <- weights) {
+                layer.layer = (for ( (neuronWeights, delta) <- (layer.layer, layer.deltas).zipped.toList ) yield {
+                    (for ((weight, input) <- neuronWeights zip layer.inputs) yield {
+                        val neuronInput = layer.psp(layer.inputs, neuronWeights)
+                        weight + learnRate * delta * input * numericDerivative(layer.activationFunction, neuronInput)
+                    }).toList
+                }).toList
+            }
+        }
+
+        def numericDerivative(function: Double => Double, x: Double) = {
+            val epsilon = 0.0001
+            (function(x+epsilon) - function(x-epsilon)) / (2 * epsilon)
         }
 
         def learn(trainingSet : List[List[Double]], epoches : Int) = {
