@@ -14,6 +14,10 @@ object NeuralNetwork {
         // deltas are calculated during back propagation
         // they should be the same length as neuron weights
         var deltas : List[Double] = null
+        // old weight updateds for backpropagation momentum
+        var previousWeightUpdates: List[NeuronWeights] = (for (neuron <- layer) yield {
+            (for (weight <- neuron) yield 0.0).toList
+        }).toList
          def activationFunction(x: Double): Double
 
          def calculate(inps: List[Double]) = {
@@ -216,13 +220,21 @@ object NeuralNetwork {
             }
         }
 
-        def backPropagate(networkOutput: List[Double], targetOutput: List[Double], learnRate: Double) {
+        def backPropagate(networkOutput: List[Double], targetOutput: List[Double], learnRate: Double, momentum: Double) {
             calculateDeltas(networkOutput, targetOutput)
             for (layer <- weights) {
-                layer.layer = (for ( (neuronWeights, delta) <- (layer.layer, layer.deltas).zipped.toList ) yield {
-                    (for ((weight, input) <- neuronWeights zip layer.inputs) yield {
+                layer.previousWeightUpdates = (for ( (neuronWeights, delta, weightUpdates) <- (layer.layer, layer.deltas, layer.previousWeightUpdates).zipped.toList ) yield {
+                    (for ( (weight, input, weightUpdate) <- (neuronWeights, layer.inputs, weightUpdates).zipped.toList) yield {
                         val neuronInput = layer.psp(layer.inputs, neuronWeights)
-                        weight + learnRate * delta * input * numericDerivative(layer.activationFunction, neuronInput)
+                        learnRate * delta * input * numericDerivative(layer.activationFunction, neuronInput) + momentum * weightUpdate
+                    }).toList
+                }).toList
+            }
+
+            for (layer <- weights) {
+                layer.layer = (for ( (neuronWeights, weightUpdates) <- (layer.layer, layer.previousWeightUpdates).zipped.toList) yield {
+                    (for ( (weight, weightUpdate) <- (neuronWeights, weightUpdates).zipped.toList) yield {
+                        weight + weightUpdate
                     }).toList
                 }).toList
             }

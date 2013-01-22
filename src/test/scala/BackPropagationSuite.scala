@@ -67,20 +67,28 @@ class BackPropagationSuite extends FunSuite {
             val nn1 = new NeuralNetwork(List(oneNeuronLayer, secondNeuronLayer))
             val networkOutput = nn1.calculate(input)
 
-            nn1.backPropagate(networkOutput, targetOutput, 0.1)
+            nn1.backPropagate(networkOutput, targetOutput, 0.1, 0.0)
             assert(oneNeuronLayer.layer(0)(0) - 1.2 < epsilon)
             assert(secondNeuronLayer.layer(0)(0) - 1.2 < epsilon)
         }
     }
 
     test("bias two layer network") {
-        var inputBiasLayer = new LinearLayer(List(List(0.5, 0.5)), true)
-        var outputBiasLayer = new LinearLayer(List(List(0.5, 0.5)), true)
-        val input = List(1.0)
-        val targetOutput = List(2.0)
-        var nn = new NeuralNetwork(List(outputBiasLayer, inputBiasLayer))
-        val networkOutput = nn.calculate(input)
+        new TestNetworks {
+            var inputBiasLayer = new LinearLayer(List(List(0.5, 0.5)), true)
+            var outputBiasLayer = new LinearLayer(List(List(0.5, 0.5)), true)
+            val input = List(1.0)
+            val targetOutput = List(2.0)
+            var nn = new NeuralNetwork(List(outputBiasLayer, inputBiasLayer))
+            val networkOutput = nn.calculate(input)
 
-        nn.backPropagate(networkOutput, targetOutput, 0.1)
+            nn.backPropagate(networkOutput, targetOutput, 0.1, 0.0)
+            val weights = nn.weights
+            weights match {
+                case List(output, input) =>
+                    assert(error(output.layer(0), List(0.25, 0.5)) < epsilon)
+                    assert(error(input.layer(0), List(0.375, 0.625)) < epsilon)
+            }
+        }
     }
 }
