@@ -177,7 +177,7 @@ object NeuralNetwork {
                     isAllRight && checkWeights(lowerLayers)
                 }
             }
-        //assert(checkWeights(weights))
+        assert(checkWeights(weights))
 
         def calculate(input: List[Double]) = {
             calculate0(input, weights)
@@ -212,11 +212,13 @@ object NeuralNetwork {
                 case layer :: Nil =>
                     0 //we don't do anything here
                 case higherLayer :: lowerLayer :: rest =>
-                    lowerLayer.deltas = (for (i <- 0 to lowerLayer.layer.length - 1) yield {
+		    val bias = if (lowerLayer.bias) 1 else 0
+                    lowerLayer.deltas = (for (i <- 0 to lowerLayer.layer.length - 1 + bias) yield {
                         (for ((neuron, delta) <- higherLayer.layer zip higherLayer.deltas) yield {
                             neuron(i) * delta
                         }).toList.sum
                     }).toList
+		    calculateDeltas0(lowerLayer :: rest)
             }
         }
 
@@ -226,7 +228,7 @@ object NeuralNetwork {
                 layer.previousWeightUpdates = (for ( (neuronWeights, delta, weightUpdates) <- (layer.layer, layer.deltas, layer.previousWeightUpdates).zipped.toList ) yield {
                     (for ( (weight, input, weightUpdate) <- (neuronWeights, layer.inputs, weightUpdates).zipped.toList) yield {
                         val neuronInput = layer.psp(layer.inputs, neuronWeights)
-                        learnRate * delta * input * numericDerivative(layer.activationFunction, neuronInput) + momentum * weightUpdate
+                        learnRate * delta * input * numericDerivative(layer.activationFunction, neuronInput)// + momentum * weightUpdate
                     }).toList
                 }).toList
             }
@@ -238,6 +240,10 @@ object NeuralNetwork {
                     }).toList
                 }).toList
             }
+	    println("N : " + networkOutput + "\nT: " + targetOutput)
+	    for (layer <- weights) {
+	    println("Layer: \n" + layer.layer + "\nDeltas: \n" + layer.deltas + "\nPrev : \n" + layer.previousWeightUpdates)
+	    }
         }
 
         def numericDerivative(function: Double => Double, x: Double) = {
