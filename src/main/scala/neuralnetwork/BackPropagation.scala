@@ -14,5 +14,12 @@ class BackPropagationTeacher(val learnRate: Double, val momentum: Double, val it
             }
         }
     }
-}
 
+    def get_error(nn : NeuralNetwork, examples : List[(List[Double], List[Double])]) = {
+         (for {(input,output) <- examples} yield {
+	    math.sqrt(math.pow((for {(o1,o2) <- nn.calculate(input) zip output} yield {(o1-o2)*(o1-o2) }).sum,
+                               2.0) / output.length)
+		     
+	 }).sum
+    }
+}

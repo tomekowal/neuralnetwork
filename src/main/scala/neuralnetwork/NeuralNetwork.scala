@@ -21,7 +21,7 @@ object NeuralNetwork {
          def activationFunction(x: Double): Double
 
          def calculate(inps: List[Double]) = {
-                if (bias) inputs = -1.0 :: inps else inputs = inps
+            if (bias) inputs = -1.0 :: inps else inputs = inps
 
             for (weights <- layer) yield {
                 if (weights.length != inputs.length)
@@ -177,7 +177,7 @@ object NeuralNetwork {
                     isAllRight && checkWeights(lowerLayers)
                 }
             }
-        assert(checkWeights(weights))
+        //assert(checkWeights(weights))
 
         def calculate(input: List[Double]) = {
             calculate0(input, weights)
