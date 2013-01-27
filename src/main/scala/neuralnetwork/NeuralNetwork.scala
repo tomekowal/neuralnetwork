@@ -194,15 +194,27 @@ object NeuralNetwork {
             }
         }
 
+	def unbias(layer : List[List[Double]]): List[List[Double]] = {
+	    (for (neuronWeights <- layer) yield {
+	    	 neuronWeights match { 
+		 	      case biasWeight :: rest => rest
+			      case wont_occur => wont_occur
+			      }
+	    }).toList
+	}
+
         def calculateDeltas(networkOutput: List[Double], targetOutput: List[Double]) {
-            val outputDeltas = for ( (no, to) <- networkOutput zip targetOutput) yield to - no
             weights match {
                 case outputLayer :: lowerLayers =>
-                    outputLayer.deltas = outputDeltas
+		    val inps = /*if (outputLayer.bias) -1.0 :: outputLayer.inputs else*/ outputLayer.inputs
+		    outputLayer.deltas = (for ( (no, to, ws) <- (networkOutput, targetOutput, outputLayer.layer).zipped.toList ) 
+		    		       yield {
+					   numericDerivative(outputLayer.activationFunction, outputLayer.psp(ws, inps)) * (to - no)
+				       }).toList
                 case Nil =>
                     throw new Exception("Empty network list")
             }
-            calculateDeltas0(weights)
+	    calculateDeltas0(weights)
         }
 
         def calculateDeltas0(weights: Weights) {
@@ -212,12 +224,23 @@ object NeuralNetwork {
                 case layer :: Nil =>
                     0 //we don't do anything here
                 case higherLayer :: lowerLayer :: rest =>
-		    val bias = if (lowerLayer.bias) 1 else 0
-                    lowerLayer.deltas = (for (i <- 0 to lowerLayer.layer.length - 1 + bias) yield {
-                        (for ((neuron, delta) <- higherLayer.layer zip higherLayer.deltas) yield {
+		    val higherLayerWeights = 
+		        (if (higherLayer.bias)
+			    unbias(higherLayer.layer)
+			 else
+			    higherLayer.layer
+			)
+
+                    val deltasTmp = (for (i <- 0 to lowerLayer.layer.length - 1) yield { // to start with zero is ok, cause that's the number of nuerons
+                        (for ((neuron, delta) <- higherLayerWeights zip higherLayer.deltas) yield {
                             neuron(i) * delta
                         }).toList.sum
                     }).toList
+
+		    lowerLayer.deltas = (for ((delta1, ws)  <- deltasTmp zip lowerLayer.layer) yield {
+						numericDerivative(lowerLayer.activationFunction, lowerLayer.psp(ws, lowerLayer.inputs)) * delta1
+						}).toList
+
 		    calculateDeltas0(lowerLayer :: rest)
             }
         }
@@ -227,8 +250,7 @@ object NeuralNetwork {
             for (layer <- weights) {
                 layer.previousWeightUpdates = (for ( (neuronWeights, delta, weightUpdates) <- (layer.layer, layer.deltas, layer.previousWeightUpdates).zipped.toList ) yield {
                     (for ( (weight, input, weightUpdate) <- (neuronWeights, layer.inputs, weightUpdates).zipped.toList) yield {
-                        val neuronInput = layer.psp(layer.inputs, neuronWeights)
-                        learnRate * delta * input * numericDerivative(layer.activationFunction, neuronInput)// + momentum * weightUpdate
+                        learnRate * delta * input + momentum * weightUpdate
                     }).toList
                 }).toList
             }
@@ -240,11 +262,9 @@ object NeuralNetwork {
                     }).toList
                 }).toList
             }
-	    println("N : " + networkOutput + "\nT: " + targetOutput)
-	    for (layer <- weights) {
-	    println("Layer: \n" + layer.layer + "\nDeltas: \n" + layer.deltas + "\nPrev : \n" + layer.previousWeightUpdates)
-	    }
-        }
+
+	}
+    
 
         def numericDerivative(function: Double => Double, x: Double) = {
             val epsilon = 0.0001

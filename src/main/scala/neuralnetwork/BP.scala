@@ -25,7 +25,7 @@ object BP extends App {
 			    ( List(0.0,0.0,1.0,0.0,0.0,0.0,0.0,0.0,0.0), List(0.0,0.0,1.0)) )
 
     val teacher = new BackPropagationTeacher(0.4, 0.3, 1)
-    val iterations = 2000
+    val iterations = 10000
     println("err: " + (for { i <- 1 to iterations } yield {
          teacher.teach(nn, training)
 	 (i, teacher.get_error(nn, training))
