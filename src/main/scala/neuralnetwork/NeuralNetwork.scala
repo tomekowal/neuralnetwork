@@ -206,10 +206,9 @@ object NeuralNetwork {
         def calculateDeltas(networkOutput: List[Double], targetOutput: List[Double]) {
             weights match {
                 case outputLayer :: lowerLayers =>
-		    val inps = /*if (outputLayer.bias) -1.0 :: outputLayer.inputs else*/ outputLayer.inputs
 		    outputLayer.deltas = (for ( (no, to, ws) <- (networkOutput, targetOutput, outputLayer.layer).zipped.toList ) 
 		    		       yield {
-					   numericDerivative(outputLayer.activationFunction, outputLayer.psp(ws, inps)) * (to - no)
+					   numericDerivative(outputLayer.activationFunction, outputLayer.psp(ws, outputLayer.inputs)) * (to - no)
 				       }).toList
                 case Nil =>
                     throw new Exception("Empty network list")
